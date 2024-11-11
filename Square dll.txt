@@ -1,0 +1,94 @@
+ Square
+1. Java Code (Square.java)
+
+public class Square {
+    static {
+        System.loadLibrary("squareLib");
+    }
+
+    public static void main(String[] args) {
+        Square square = new Square();
+        System.out.println("Square of 5 = " + square.square(5));
+    }
+
+    private native int square(int n);
+}
+
+2. Generating the Header File
+javac -h . Square.java
+
+3. C Code (Square.c)
+#include <jni.h>
+#include "Square.h"
+
+JNIEXPORT jint JNICALL Java_Square_square(JNIEnv *env, jobject obj, jint n) {
+    return n * n;
+}
+
+4. Compiling and Creating Shared Library
+gcc -c -fPIC -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux Square.c -o Square.o
+gcc -shared -fPIC -o libsquareLib.so Square.o -lc
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+Algorithm for Creating the Square JNI Program :-
+
+
+1. Create the Java Class with the Native Method Declaration Define a Java class named Square.
+Inside the Square class:
+Declare a native method named square with the signature private native int square(int n);.
+Use System.loadLibrary("squareLib"); within a static block to load the shared library squareLib that will be created later.
+Implement a main method to test the square method by creating an instance of Square and calling square(5).
+
+2. Generate the Header File
+
+Compile the Square.java file to generate the JNI header file Square.h:
+Run the command: javac -h . Square.java
+The -h . option tells the compiler to create the header file in the current directory.
+This header file will contain the JNI function signature required to implement the square method in C.
+
+3. Write the C Code for the Native Method Implementation
+
+Create a C file named Square.c.
+Include the JNI header <jni.h> and the generated Square.h header file.
+Implement the native method Java_Square_square to perform the square operation:
+Define JNIEXPORT jint JNICALL Java_Square_square(JNIEnv *env, jobject obj, jint n).
+Within the method, calculate the square by returning n * n.
+
+4. Compile the C Code to Create an Object File
+
+Compile Square.c to create an object file (Square.o) that will be used to build the shared library.
+Use the following command:
+
+gcc -c -fPIC -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux Square.c -o Square.o
+Here:
+-c compiles the code without linking, creating only the object file.
+-fPIC produces position-independent code, necessary for shared libraries.
+-I${JAVA_HOME}/include and -I${JAVA_HOME}/include/linux specify the paths to JNI header files.
+
+5. Create the Shared Library
+
+Link the object file to create a shared library libsquareLib.so that can be loaded by Java:
+b
+gcc -shared -fPIC -o libsquareLib.so Square.o -lc
+-shared creates a shared library, -fPIC ensures position independence, -o libsquareLib.so names the output library, and -lc links the C standard library if needed.
+
+6. Run the Java Program to Test the Native Method
+
+Run the Square Java class, specifying the path to the shared library:
+bash
+Copy code
+java -Djava.library.path=. Square
+The -Djava.library.path=. option tells Java to look in the current directory for libsquareLib.so.
+The program will load the shared library and execute the square method to compute the square of the input.
+This algorithm provides a clear sequence of steps to create, compile, and test a JNI-based program for calculating the square of a number.
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,88 @@
+ Subtraction :-
+
+1. Java Code (Subtraction.java)
+
+public class Subtraction {
+    static {
+        System.loadLibrary("subtractionLib");
+    }
+
+    public static void main(String[] args) {
+        Subtraction subtraction = new Subtraction();
+        System.out.println("Subtraction of 20 - 10 = " + subtraction.subtract(20, 10));
+    }
+
+    private native int subtract(int n1, int n2);
+}
+
+2. Generating the Header File
+Compile this Java file to generate the header:
+
+javac -h . Subtraction.java
+
+3. C Code (Subtraction.c)
+
+#include <jni.h>
+#include "Subtraction.h"
+
+JNIEXPORT jint JNICALL Java_Subtraction_subtract(JNIEnv *env, jobject obj, jint n1, jint n2) {
+    return n1 - n2;
+}
+
+4. Compiling and Creating Shared Library
+gcc -c -fPIC -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux Subtraction.c -o Subtraction.o
+gcc -shared -fPIC -o libsubtractionLib.so Subtraction.o -lc
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+Algorithm for Creating the Subtraction JNI Program :-
+
+1. Create the Java Class with the Native Method Declaration
+
+Define a Java class named Subtraction.
+Inside the Subtraction class:
+Declare a native method named subtract with the signature private native int subtract(int n1, int n2);.
+Use System.loadLibrary("subtractionLib"); within a static block to load the shared library subtractionLib that will be created in a later step.
+Implement a main method to test the subtract method by creating an instance of Subtraction and calling subtract(20, 10).
+
+2. Generate the Header File
+
+Compile the Subtraction.java file to generate the JNI header file Subtraction.h.
+Run the command:
+
+javac -h . Subtraction.java
+The -h . option tells the compiler to create the header file in the current directory.
+This header file will contain the JNI function signature required to implement the subtract method in C.
+
+3. Write the C Code for the Native Method Implementation
+
+Create a C file named Subtraction.c.
+Include the JNI header <jni.h> and the generated Subtraction.h header file.
+Implement the native method Java_Subtraction_subtract to perform the subtraction operation:
+Define JNIEXPORT jint JNICALL Java_Subtraction_subtract(JNIEnv *env, jobject obj, jint n1, jint n2).
+Within the method, calculate the result of n1 - n2 and return it.
+
+4. Compile the C Code to Create an Object File
+
+Compile Subtraction.c to create an object file (Subtraction.o) that will be used to build the shared library.
+Use the following command:
+
+gcc -c -fPIC -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux Subtraction.c -o Subtraction.o
+Here:
+-c compiles the code without linking, creating only the object file.
+-fPIC produces position-independent code, necessary for shared libraries.
+-I${JAVA_HOME}/include and -I${JAVA_HOME}/include/linux specify the paths to JNI header files.
+
+5. Create the Shared Library
+
+Link the object file to create a shared library libsubtractionLib.so that can be loaded by Java:
+
+gcc -shared -fPIC -o libsubtractionLib.so Subtraction.o -lc
+-shared creates a shared library, -fPIC ensures position independence, -o libsubtractionLib.so names the output library, and -lc links the C standard library if needed.
+
+6. Run the Java Program to Test the Native Method
+
+Run the Subtraction Java class, specifying the path to the shared library:
+
+java -Djava.library.path=. Subtraction
+The -Djava.library.path=. option tells Java to look in the current directory for libsubtractionLib.so.
+The program will load the shared library and execute the subtract method to compute the subtraction of the given numbers.

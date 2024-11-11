@@ -1,0 +1,159 @@
+1. Next Fit is similar to First Fit, but instead of always starting from the first memory block, it starts from the last allocated block and continues searching for the next available block that fits the process.
+
+2. Worst Fit allocates the largest available block that can fit the process. This strategy tries to leave the largest remaining space after placing a process, thus minimizing the chance of small fragmented memory blocks.
+
+------------------------------------------------------------------------------------------------------------------
+
+import java.util.Arrays;
+
+public class fit {
+
+    // Next Fit Algorithm
+    public static void nextFit(int[] memoryBlocks, int[] processRequirements) {
+        int[] memoryStatus = new int[memoryBlocks.length];  // Track memory block allocation
+        Arrays.fill(memoryStatus, -1);  // -1 means unallocated
+        int lastAllocatedIndex = -1;  // To track the last allocated block
+
+        for (int i = 0; i < processRequirements.length; i++) {
+            boolean allocated = false;
+
+            // Start allocation from the last allocated block
+            int startIndex = lastAllocatedIndex + 1;
+            for (int j = startIndex; j < memoryBlocks.length; j++) {
+                if (memoryBlocks[j] >= processRequirements[i] && memoryStatus[j] == -1) {
+                    memoryStatus[j] = i;  // Allocate the process to the memory block
+                    System.out.println("Process " + i + " (size " + processRequirements[i] + ") allocated to block " + j + " (size " + memoryBlocks[j] + ")");
+                    lastAllocatedIndex = j;  // Update the last allocated block
+                    allocated = true;
+                    break;
+                }
+            }
+
+            // If allocation is not done and we've reached the end, try from the beginning
+            if (!allocated) {
+                for (int j = 0; j < startIndex; j++) {
+                    if (memoryBlocks[j] >= processRequirements[i] && memoryStatus[j] == -1) {
+                        memoryStatus[j] = i;  // Allocate the process to the memory block
+                        System.out.println("Process " + i + " (size " + processRequirements[i] + ") allocated to block " + j + " (size " + memoryBlocks[j] + ")");
+                        lastAllocatedIndex = j;  // Update the last allocated block
+                        allocated = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!allocated) {
+                System.out.println("Process " + i + " could not be allocated.");
+            }
+        }
+    }
+
+    // Worst Fit Algorithm
+    public static void worstFit(int[] memoryBlocks, int[] processRequirements) {
+        int[] memoryStatus = new int[memoryBlocks.length];  // Track memory block allocation
+        Arrays.fill(memoryStatus, -1);  // -1 means unallocated
+
+        for (int i = 0; i < processRequirements.length; i++) {
+            int worstIndex = -1;
+            int worstFitSize = -1;
+
+            // Find the worst fit for the process (largest block with enough space)
+            for (int j = 0; j < memoryBlocks.length; j++) {
+                if (memoryBlocks[j] >= processRequirements[i] && memoryStatus[j] == -1) {
+                    int leftoverSpace = memoryBlocks[j] - processRequirements[i];
+                    if (leftoverSpace > worstFitSize) {
+                        worstFitSize = leftoverSpace;
+                        worstIndex = j;
+                    }
+                }
+            }
+
+            if (worstIndex != -1) {
+                memoryStatus[worstIndex] = i;
+                System.out.println("Process " + i + " (size " + processRequirements[i] + ") allocated to block " + worstIndex + " (size " + memoryBlocks[worstIndex] + ")");
+            } else {
+                System.out.println("Process " + i + " could not be allocated.");
+            }
+        }
+    }
+
+    // Main function for testing
+    public static void main(String[] args) {
+        // Example memory blocks and process requirements
+        int[] memoryBlocks = {100, 500, 200, 300, 600};
+        int[] processRequirements = {212, 417, 112, 426};
+
+        // Next Fit Allocation
+        System.out.println("Next Fit Allocation:");
+        nextFit(memoryBlocks, processRequirements);
+
+        // Separate output for clarity
+        System.out.println("\n----------------------------\n");
+
+        // Worst Fit Allocation
+        System.out.println("Worst Fit Allocation:");
+        worstFit(memoryBlocks, processRequirements);
+    }
+}
+
+------------------------------------------------------------------------------------------------------------------------------------------------A. Next Fit Memory Allocation Algorithm
+Goal: Allocate each process to the next available memory block that can fit the process's memory requirement, starting from the last allocated block.
+
+1.Initialize:
+
+memoryBlocks: an array containing the sizes of available memory blocks.
+processRequirements: an array containing the sizes of memory each process needs.
+memoryStatus: an array with the same size as memoryBlocks, initialized to -1 to track allocation. -1 indicates that a block is unallocated.
+lastAllocatedIndex: a variable initialized to -1, tracking the last allocated memory block.
+
+2. Allocate each process in processRequirements:
+
+For each process i:
+Set a boolean allocated to false.
+Start searching from the index of the last allocated block (lastAllocatedIndex + 1):
+For each memory block j starting from lastAllocatedIndex + 1 up to the end of memoryBlocks:
+If memoryBlocks[j] can fit processRequirements[i] and memoryStatus[j] is -1:
+Set memoryStatus[j] = i to allocate the process to this block.
+Print that Process i was allocated to Block j.
+Update lastAllocatedIndex to j and set allocated = true.
+Break out of the inner loop.
+If no suitable block was found in this range, start again from the beginning up to lastAllocatedIndex:
+For each block j from 0 to lastAllocatedIndex:
+If memoryBlocks[j] can fit processRequirements[i] and memoryStatus[j] is -1:
+Set memoryStatus[j] = i to allocate the process to this block.
+Print that Process i was allocated to Block j.
+Update lastAllocatedIndex to j and set allocated = true.
+Break out of the loop.
+If no block was found in either search, print that Process i could not be allocated.
+
+3. Output:
+
+Print the allocation results after all processes have been attempted.
+
+
+B. Worst Fit Memory Allocation Algorithm
+Goal: Allocate each process to the memory block with the most remaining space that can still fit the process's memory requirement.
+
+
+1. Initialize:
+
+memoryBlocks: an array containing the sizes of available memory blocks.
+processRequirements: an array containing the sizes of memory each process needs.
+memoryStatus: an array with the same size as memoryBlocks, initialized to -1 to track allocation. -1 indicates that a block is unallocated.
+2. Allocate each process in processRequirements:
+
+For each process i:
+Initialize worstIndex to -1 and worstFitSize to -1.
+For each memory block j in memoryBlocks:
+If memoryBlocks[j] can fit processRequirements[i] and memoryStatus[j] is -1:
+Calculate leftoverSpace = memoryBlocks[j] - processRequirements[i].
+If leftoverSpace is larger than worstFitSize:
+Set worstFitSize to leftoverSpace and worstIndex to j.
+After checking all blocks, if worstIndex is not -1:
+Set memoryStatus[worstIndex] = i to allocate the process to the worst-fitting block.
+Print that Process i was allocated to Block worstIndex.
+If no suitable block was found, print that Process i could not be allocated.
+3. Output:
+
+Print the allocation results after all processes have been attempted.
+This implementation allows you to test how each allocation strategy handles different sizes of memory blocks and process requirements.

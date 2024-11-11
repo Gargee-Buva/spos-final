@@ -1,0 +1,201 @@
+import java.util.ArrayList;
+import java.util.Scanner;
+
+class Process {
+    int pid;
+    int arrivalTime;
+    int burstTime;
+    int remainingTime;
+    int priority;
+    int completionTime;
+    int waitingTime;
+    int turnaroundTime;
+
+    public Process(int pid, int arrivalTime, int burstTime, int priority) {
+        this.pid = pid;
+        this.arrivalTime = arrivalTime;
+        this.burstTime = burstTime;
+        this.remainingTime = burstTime;
+        this.priority = priority;
+        this.completionTime = 0;
+        this.waitingTime = 0;
+        this.turnaroundTime = 0;
+    }
+}
+
+public class srtfps2 {
+    public static void sjfPreemptive(ArrayList<Process> processes) {
+        int time = 0;
+        int completed = 0;
+        int n = processes.size();
+
+        while (completed != n) {
+            Process currentProcess = null;
+            int minRemainingTime = Integer.MAX_VALUE;
+
+            for (Process process : processes) {
+                if (process.arrivalTime <= time && process.remainingTime > 0 && process.remainingTime < minRemainingTime) {
+                    minRemainingTime = process.remainingTime;
+                    currentProcess = process;
+                }
+            }
+
+            if (currentProcess != null) {
+                currentProcess.remainingTime--;
+                time++;
+
+                if (currentProcess.remainingTime == 0) {
+                    currentProcess.completionTime = time;
+                    currentProcess.turnaroundTime = currentProcess.completionTime - currentProcess.arrivalTime;
+                    currentProcess.waitingTime = currentProcess.turnaroundTime - currentProcess.burstTime;
+                    completed++;
+                }
+            } else {
+                time++;
+            }
+        }
+
+        System.out.println("\nSJF (Preemptive) Scheduling Results:");
+        printResults(processes);
+    }
+
+    public static void priorityNonPreemptive(ArrayList<Process> processes) {
+        int time = 0;
+        int completed = 0;
+        int n = processes.size();
+
+        while (completed != n) {
+            Process highestPriorityProcess = null;
+            int highestPriority = Integer.MIN_VALUE; // Changed to handle higher numbers as higher priority
+
+            for (Process process : processes) {
+                if (process.arrivalTime <= time && process.remainingTime > 0 && process.priority > highestPriority) {
+                    highestPriority = process.priority;
+                    highestPriorityProcess = process;
+                }
+            }
+
+            if (highestPriorityProcess != null) {
+                time += highestPriorityProcess.burstTime;
+                highestPriorityProcess.completionTime = time;
+                highestPriorityProcess.turnaroundTime = highestPriorityProcess.completionTime - highestPriorityProcess.arrivalTime;
+                highestPriorityProcess.waitingTime = highestPriorityProcess.turnaroundTime - highestPriorityProcess.burstTime;
+                highestPriorityProcess.remainingTime = 0;
+                completed++;
+            } else {
+                time++;
+            }
+        }
+
+        System.out.println("\nPriority (Non-Preemptive) Scheduling Results:");
+        printResults(processes);
+    }
+
+    public static void printResults(ArrayList<Process> processes) {
+        System.out.println("PID\tArrival\tBurst\tPriority\tCompletion\tWaiting\tTurnaround");
+        for (Process p : processes) {
+            System.out.printf("%d\t%d\t%d\t%d\t\t%d\t\t%d\t%d\n",
+                    p.pid, p.arrivalTime, p.burstTime, p.priority, p.completionTime, p.waitingTime, p.turnaroundTime);
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        ArrayList<Process> processes = new ArrayList<>();
+
+        System.out.print("Enter the number of processes: ");
+        int n = sc.nextInt();
+
+        for (int i = 0; i < n; i++) {
+            System.out.println("Enter details for Process " + (i + 1) + ":");
+            System.out.print("PID: ");
+            int pid = sc.nextInt();
+            System.out.print("Arrival Time: ");
+            int arrivalTime = sc.nextInt();
+            System.out.print("Burst Time: ");
+            int burstTime = sc.nextInt();
+            System.out.print("Priority (higher number = higher priority): ");
+            int priority = sc.nextInt();
+            processes.add(new Process(pid, arrivalTime, burstTime, priority));
+        }
+
+        while (true) {
+            System.out.println("\nChoose Scheduling Algorithm:");
+            System.out.println("1. SJF (Preemptive)");
+            System.out.println("2. Priority (Non-Preemptive)");
+            System.out.println("3. Exit");
+            System.out.print("Enter your choice: ");
+            int choice = sc.nextInt();
+
+            if (choice == 1) {
+                sjfPreemptive(new ArrayList<>(processes));  // Pass a copy to preserve original data for next use
+            } else if (choice == 2) {
+                priorityNonPreemptive(new ArrayList<>(processes));  // Pass a copy to preserve original data
+            } else if (choice == 3) {
+                System.out.println("Exiting program.");
+                break;
+            } else {
+                System.out.println("Invalid choice. Please try again.");
+            }
+        }
+
+        sc.close();
+    }
+}
+
+------------------------------------------------------------------------------------------------------------------
+1. Shortest Job First (SJF) Preemptive Scheduling Algorithm
+The SJF Preemptive scheduling algorithm (also called Shortest Remaining Time First (SRTF)) selects the process with the smallest remaining burst time for execution. If a new process with a shorter remaining time arrives, the CPU preempts the currently executing process and starts executing the new one.
+
+Algorithm:
+Initialization:
+
+Set time = 0 (initial time).
+Set completed = 0 (to track how many processes have finished).
+Loop until all processes are completed:
+
+For each process, check if its arrivalTime is less than or equal to the current time and if it has remaining burst time.
+Find the process with the minimum remaining burst time (remainingTime).
+Execute the selected process:
+
+If a process is found (not null), decrease its remainingTime by 1 (simulate the execution of the process for 1 unit of time).
+Increase time by 1.
+Process Completion:
+
+If a process’s remainingTime becomes 0, set its completionTime to the current time.
+Calculate its turnaroundTime = completionTime - arrivalTime.
+Calculate its waitingTime = turnaroundTime - burstTime.
+Mark the process as completed (completed++).
+Idle Time:
+
+If no process is eligible to execute (i.e., no process has arrived by the current time), simply increment time (CPU is idle).
+Display the results:
+
+After all processes are completed, display the results for each process: PID, Arrival Time, Burst Time, Priority, Completion Time, Waiting Time, and Turnaround Time.
+2. Priority Scheduling (Non-Preemptive) Algorithm
+The Priority Scheduling (Non-Preemptive) algorithm executes processes based on their priority. The process with the highest priority (numerically highest value in this case) is executed first. Once a process starts executing, it runs to completion without interruption.
+
+Algorithm:
+Initialization:
+
+Set time = 0 (initial time).
+Set completed = 0 (to track how many processes have finished).
+Loop until all processes are completed:
+
+For each process, check if its arrivalTime is less than or equal to the current time and if it has remaining burst time.
+Find the process with the highest priority. If multiple processes have the same priority, select the one that has arrived first or the one that was added earlier.
+Execute the selected process:
+
+If a process is found, increment time by its burstTime.
+Set its completionTime to the current time.
+Process Completion:
+
+Calculate the turnaroundTime = completionTime - arrivalTime.
+Calculate the waitingTime = turnaroundTime - burstTime.
+Mark the process as completed (completed++).
+Idle Time:
+
+If no process is eligible to execute, increment time (CPU is idle).
+Display the results:
+
+After all processes are completed, display the results for each process: PID, Arrival Time, Burst Time, Priority, Completion Time, Waiting Time, and Turnaround Time.

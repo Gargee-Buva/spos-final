@@ -1,0 +1,16 @@
+#include<jni.h>
+#include<stdio.h>
+#include "testjni.h" //(name of header file)
+
+//get prototype from the header file 
+
+JNIEXPORT jint JNICALL Java_testJni1_add (JNIEnv *, jobject, jint, jint);
+
+//after coping the prototype do some modifications in it
+
+JNIEXPORT jint JNICALL Java_testJni1_add(JNIEnv * Name_of_variable, jobject Name_of_object , jint n1 , jint n2 ) 
+{
+jint res ;
+res = n1 + n2;
+return res ;
+}

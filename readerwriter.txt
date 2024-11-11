@@ -1,0 +1,133 @@
+1. semaphore is a non-negative integer variable used as flag .( This is the class type, representing a semaphore in Java, which is used to control access to a shared resource by multiple threads.)
+2. concurrency means more than one thread or process is progressing at same time 
+3. The Reader class is marked as static so it can be used without needing an instance of the main class.
+implements 
+4. Runnable means Reader is set up to run in its own thread. This lets us create multiple readers that can each run independently to read data at the same time.
+
+5. Writer threads may start first and change the message from "Hello" to "Good Morning."
+Reader threads will read and display the value of message, either "Hello" (if they start before any writer) or "Good Morning" (if any writer has already modified it).
+-------------------------------------------------------------------------------------------------------------------------------------
+import java.util.concurrent.Semaphore;
+
+public class ReaderWriterPrj {
+
+    static Semaphore mutex = new Semaphore(1); // Mutex semaphore to control access to readCount
+    static Semaphore wrt = new Semaphore(1);   // Write semaphore to control writer access to the message
+    static int readCount = 0;                  // Number of active readers
+    static String message = "Hello";           // Shared message resource
+
+    // Reader Thread
+    static class Reader implements Runnable { 
+        public void run() {
+            try {
+                // Acquire mutex to safely update readCount
+                mutex.acquire();
+                readCount++;
+                if (readCount == 1) {
+                    // First reader blocks writers
+                    wrt.acquire();
+                }
+                mutex.release(); // Release mutex after updating readCount
+
+                // Reading section
+                System.out.println("Thread " + Thread.currentThread().getName() + " is READING: " + message);
+                Thread.sleep(1500); // Simulate reading time
+                System.out.println("Thread " + Thread.currentThread().getName() + " has FINISHED READING");
+
+                // Releasing section
+                mutex.acquire();
+                readCount--;
+                if (readCount == 0) {
+                    // Last reader allows writers to proceed
+                    wrt.release();
+                }
+                mutex.release(); // Release mutex after updating readCount
+            } catch (InterruptedException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+
+    // Writer Thread
+    static class Writer implements Runnable {
+        public void run() {
+            try {
+                wrt.acquire(); // Ensure exclusive access for writers
+                message = "Good Morning"; // Update the message
+                System.out.println("Thread " + Thread.currentThread().getName() + " is WRITING: " + message);
+                Thread.sleep(1500); // Simulate writing time
+                System.out.println("Thread " + Thread.currentThread().getName() + " has FINISHED WRITING");
+                wrt.release(); // Release wrt to allow other readers or writers
+            } catch (InterruptedException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+
+    // Main program
+    public static void main(String[] args) throws Exception {
+        Reader read = new Reader();
+        Writer write = new Writer();
+
+        // Create and name reader threads
+        Thread r1 = new Thread(read);
+        r1.setName("Reader1");
+        Thread r2 = new Thread(read);
+        r2.setName("Reader2");
+        Thread r3 = new Thread(read);
+        r3.setName("Reader3");
+
+        // Create and name writer threads
+        Thread w1 = new Thread(write);
+        w1.setName("Writer1");
+        Thread w2 = new Thread(write);
+        w2.setName("Writer2");
+        Thread w3 = new Thread(write);
+        w3.setName("Writer3");
+
+        // Start writer and reader threads
+        w1.start();
+        r1.start();
+        w2.start();
+        r2.start();
+        w3.start();
+        r3.start();
+
+        // Wait for all threads to complete execution
+        w1.join();
+        r1.join();
+        w2.join();
+        r2.join();
+        w3.join();
+        r3.join();
+    }
+}
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+The goal is to allow multiple readers to access the resource simultaneously but restrict writers to exclusive access, ensuring data consistency.
+
+Key Concepts and Algorithm:
+Semaphores:
+
+mutex: Controls access to the readCount variable, ensuring that it’s updated safely without interference.
+wrt: Ensures exclusive access to the shared message resource for writers, preventing simultaneous modifications by multiple writers or readers and writers at the same time.
+Variables:
+
+readCount: Tracks the number of active readers.
+message: The shared resource, initially set to "Hello" and updated by writers.
+Algorithm:
+
+Reader Threads:
+
+Each reader thread first acquires mutex to increment readCount.
+If readCount is 1 (indicating the first reader), it acquires wrt to block writers.
+The reader then releases mutex and proceeds to read message.
+After reading, the reader again acquires mutex to decrement readCount. If readCount becomes 0 (indicating the last reader), it releases wrt to allow writers access.
+Writer Threads:
+
+Each writer thread acquires wrt to gain exclusive access to message, preventing other readers and writers from accessing it.
+The writer updates message, waits briefly to simulate writing time, then releases wrt to allow other threads access.
+Execution Flow:
+
+Readers can read the resource concurrently if no writer is active.
+Writers can only proceed when there are no active readers or writers, ensuring that the resource isn’t modified during a read operation.
+This solution prevents conflicts between readers and writers by using semaphores, allowing efficient simultaneous reads while securing exclusive writes.

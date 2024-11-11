@@ -1,0 +1,205 @@
+import java.util.*;
+
+public class easy {
+
+    // FIFO Page Replacement Algorithm
+    public static void fifoPageReplacement(int[] pages, int frameSize) {
+        int[] frames = new int[frameSize];
+        Arrays.fill(frames, -1); // Initially all frames are empty
+        int pageFaults = 0;
+        int pageHits = 0;
+        int index = 0; // To keep track of the oldest page in FIFO
+
+        for (int page : pages) {
+            boolean pageFound = false;
+
+            // Check if the page is already in the frames
+            for (int frame : frames) {
+                if (frame == page) {
+                    pageHits++;
+                    pageFound = true;
+                    break;
+                }
+            }
+
+            if (!pageFound) {
+                pageFaults++;
+                frames[index] = page; // Replace the oldest page
+                index = (index + 1) % frameSize; // Move to the next frame index
+            }
+
+            System.out.println("Frames: " + Arrays.toString(frames));
+        }
+
+        System.out.println("\nFIFO Results:");
+        System.out.println("Total Page Faults: " + pageFaults);
+        System.out.println("Total Page Hits: " + pageHits);
+    }
+
+    // Optimal Page Replacement Algorithm
+    public static void optimalPageReplacement(int[] pages, int frameSize) {
+        int[] frames = new int[frameSize];
+        Arrays.fill(frames, -1); // Initially all frames are empty
+        int pageFaults = 0;
+        int pageHits = 0;
+
+        for (int i = 0; i < pages.length; i++) {
+            int page = pages[i];
+            boolean pageFound = false;
+
+            // Check if the page is already in the frames
+            for (int frame : frames) {
+                if (frame == page) {
+                    pageHits++;
+                    pageFound = true;
+                    break;
+                }
+            }
+
+            if (!pageFound) {
+                pageFaults++;
+                if (isFrameFull(frames)) {
+                    int replaceIndex = getOptimalPageToReplace(pages, frames, i);
+                    frames[replaceIndex] = page;
+                } else {
+                    // If a frame is empty, place the page in the first empty frame
+                    for (int j = 0; j < frameSize; j++) {
+                        if (frames[j] == -1) {
+                            frames[j] = page;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            System.out.println("Frames: " + Arrays.toString(frames));
+        }
+
+        System.out.println("\nOptimal Results:");
+        System.out.println("Total Page Faults: " + pageFaults);
+        System.out.println("Total Page Hits: " + pageHits);
+    }
+
+    // Helper method to check if the frames are full
+    private static boolean isFrameFull(int[] frames) {
+        for (int frame : frames) {
+            if (frame == -1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Helper method to get the index of the page to replace for Optimal algorithm
+    private static int getOptimalPageToReplace(int[] pages, int[] frames, int currentIndex) {
+        int farthest = -1;
+        int replaceIndex = -1;
+
+        // Find the page in the frame that will be used farthest in the future
+        for (int i = 0; i < frames.length; i++) {
+            int frame = frames[i];
+            int j;
+            for (j = currentIndex + 1; j < pages.length; j++) {
+                if (pages[j] == frame) {
+                    break;
+                }
+            }
+            if (j == pages.length) {
+                return i; // If page won't be used again, replace it
+            }
+            if (j > farthest) {
+                farthest = j;
+                replaceIndex = i;
+            }
+        }
+
+        return replaceIndex;
+    }
+
+    public static void main(String[] args) {
+        int[] pages = {4, 3, 2, 1, 4, 3, 5, 4, 3, 2, 1, 5}; // Sample page requests
+        int frameSize = 3; // Frame size
+
+        System.out.println("FIFO Page Replacement:");
+        fifoPageReplacement(pages, frameSize);
+
+        System.out.println("\n==============================\n");
+
+        System.out.println("Optimal Page Replacement:");
+        optimalPageReplacement(pages, frameSize);
+    }
+}
+------------------------------------------------------------------------------------------------------------------------------------------------1. FIFO Page Replacement Algorithm
+The FIFO (First-In-First-Out) page replacement algorithm replaces the oldest page in memory when a page fault occurs.
+
+Algorithm:
+Initialize:
+
+Set an empty frame array of size frameSize with each frame initialized to -1 (indicating empty).
+Initialize pageFaults and pageHits counters to 0.
+Set index = 0 to track the oldest page in memory.
+Process each page in the pages array:
+
+Check if the page is in memory:
+Loop through frames. If page is found in frames, it is a page hit:
+Increment pageHits.
+Move to the next page.
+If page is not found in memory:
+Increment pageFaults.
+Replace the page at frames[index] with the new page.
+Update index = (index + 1) % frameSize to track the oldest page for the next replacement.
+Print the current state of frames.
+Output Results:
+
+Print the total number of pageFaults and pageHits.
+
+2. Optimal Page Replacement Algorithm
+The Optimal page replacement algorithm replaces the page that will not be used for the longest period in the future, reducing page faults compared to FIFO.
+
+Algorithm:
+Initialize:
+
+Set an empty frame array of size frameSize with each frame initialized to -1.
+Initialize pageFaults and pageHits counters to 0.
+Process each page in the pages array:
+
+Check if the page is in memory:
+Loop through frames. If page is found in frames, it is a page hit:
+Increment pageHits.
+Move to the next page.
+If page is not found in memory:
+Increment pageFaults.
+If there is an empty frame in frames, place the page in the first empty slot.
+If frames is full, use the Optimal Replacement Strategy:
+Call getOptimalPageToReplace() to find the index of the page in frames that will not be used for the longest time in the future.
+Replace the page at frames[replaceIndex] with the new page.
+Print the current state of frames.
+Helper Functions:
+
+isFrameFull(frames): Checks if all frames are occupied (i.e., no -1).
+getOptimalPageToReplace(pages, frames, currentIndex):
+For each page in frames, find the farthest future use by scanning the pages array from currentIndex + 1.
+If a page is never used again, choose it for replacement.
+If all pages will be used, choose the one with the farthest future use.
+Output Results:
+
+Print the total number of pageFaults and pageHits.
+
+
+NOTE :-
+A. for (int frame : frames)
+This is for each loop where , frames is an array representing the frames in memory, where each frame can hold one page.
+In each iteration, the current element (or frame) is assigned to the variable frame.
+Inside the loop body (not shown in this line), you can use frame to check if the page you’re currently processing is equal to any of the existing frames.
+
+B. Page replacement is a memory management concept in operating systems used when there isn’t enough physical memory (RAM) to hold all the pages (sections of a program) that a process requires at the same time. When a program accesses a page that is not in memory (a page fault), the operating system must load the missing page from disk into RAM. If RAM is full, a page currently in memory must be replaced to make space for the new page.
+
+Page replacement algorithms determine which page to remove based on criteria like:
+
+FIFO (First-In-First-Out): Removes the oldest loaded page.
+Optimal: Removes the page that won’t be used for the longest time in the future.
+LRU (Least Recently Used): Removes the page that hasn’t been used for the longest time.
+The goal of page replacement is to minimize page faults, which can slow down program execution.
+
+
+

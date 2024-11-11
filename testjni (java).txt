@@ -1,0 +1,91 @@
+// contents of java file
+
+Public class testjni  //meaning it can be accessed from outside its package.
+
+ {
+static {
+system.loadlibrary("native"); //loading the shared library
+//method instructs the JVM to load a native library file named "native"
+
+}
+
+public static void main(string[] args) {
+system.out.println("addition is " + new testjni().add(20,30));
+}
+
+private native int add(int n1, int n2); //native keyword: Specifies that this method is implemented in native code (e.g., C/C++) and not in Java.
+}
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+TERMINAL :-
+
+cd Desktop
+javac -h . testJni.java  //(to create a header file)
+gcc -c -fPIC -I/usr/lib/jvm/java-1.8.0-openjdk-amd64/include-I/usr/lib/jvm/java-1.8.0-openjdk-amd64/include/linux testJni.c -o testJni.o                         //add path of jniheader (do this after creating c file) 
+gcc -shared -fPIC -o libnative.so testJni.o -lc
+java -Djava.library.path=.testjni
+----------------------------------------------------------------------------------------------------------------------------------------------
+TO FIND THE PATH OF JNI HEADER :-
+
+files(all files) -> computer -> user -> lib -> jvm -> check version and open jdk -> include -> jni.h = path found 
+gcc mention the path
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+Sure! Here’s a quick summary:
+
+javac -h . testJni.java
+
+Compiles testJni.java and generates a header file (testJni.h) needed to connect Java with C.
+gcc -c -fPIC -I... testJni.c -o testJni.o
+
+Compiles the C code (testJni.c) into an object file (testJni.o), using JNI headers from the Java JDK for compatibility.
+gcc -shared -fPIC -o libnative.so testJni.o -lc .(-o libnative.so specifies the name of the shared library to be created.)
+
+Creates a shared library (libnative.so) from the object file, which Java can load at runtime.
+java -Djava.library.path=. testJni
+
+Runs the Java program, setting the library path to find libnative.so in the current directory.
+This process connects Java code to C functions!
+
+A native method in Java is a method that is written in a language other than Java, like C or C++, and is linked to Java code using the Java Native Interface (JNI). This allows Java programs to use functions that are not written in Java, which can be helpful for tasks that need to directly interact with the operating system, work with hardware, or use existing code written in other languages.
+
+In simple terms, you could think of a native method as a "bridge" that lets Java code talk to code in other programming languages.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------ALGORITHM :-
+
+1. Create Java Class with Native Method Declaration
+
+Define a Java class for each operation (e.g., Subtraction, Square, Multiplication).
+Declare a native method in each class specific to the operation (e.g., subtract, square, multiply).
+In each Java class, load the respective shared library using System.loadLibrary.
+
+2. Compile the Java Class to Generate the Header File
+Use the javac command with the -h option to compile each Java class. This generates a header file with JNI function declarations specific to each operation.
+
+3. Implement Native Method in C
+
+Create a separate C file for each operation (e.g., Subtraction.c, Square.c, Multiplication.c).
+Include the generated header file in each C file.
+Implement the logic for the operation in the corresponding C file.
+Define the JNI method with the exact signature as generated in the header file 
+
+4. Compile C Code to Create Object File
+
+Use the gcc compiler to compile each C file into an object file.
+Specify JNI header paths (-I options) to include necessary JNI definitions.
+
+
+5.Create a Shared Library from Object File
+
+Link the object file to create a shared library for each operation.
+Use the gcc -shared option to create the shared library with a name that matches the one specified in System.loadLibrary.
+
+
+6.Run the Java Program
+
+Execute the Java program, specifying the path to the directory containing the shared library with java.library.path.
+
+
+
+

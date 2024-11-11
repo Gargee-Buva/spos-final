@@ -1,0 +1,63 @@
+ Multiplication
+
+1. Java Code (Multiplication.java)
+
+public class Multiplication {
+    static {
+        System.loadLibrary("multiplicationLib");
+    }
+
+    public static void main(String[] args) {
+        Multiplication multiplication = new Multiplication();
+        System.out.println("Multiplication of 4 * 6 = " + multiplication.multiply(4, 6));
+    }
+
+    private native int multiply(int n1, int n2);
+}
+
+
+2. Generating the Header File
+javac -h . Multiplication.java
+
+
+
+3. C Code (Multiplication.c)
+#include <jni.h>
+#include "Multiplication.h"
+
+JNIEXPORT jint JNICALL Java_Multiplication_multiply(JNIEnv *env, jobject obj, jint n1, jint n2) {
+    return n1 * n2;
+}
+4. Compiling and Creating Shared Library
+
+gcc -c -fPIC -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux Multiplication.c -o Multiplication.o
+gcc -shared -fPIC -o libmultiplicationLib.so Multiplication.o -lc
+
+5. Running Each Program
+For each program, use the following command to execute:
+
+java -Djava.library.path=. Multiplication
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------Algorithm for Java-C JNI Multiplication
+Step 1: Set up the Java Class with the Native Method
+Create a Java class (e.g., Multiplication.java).
+Define a native method multiply(int n1, int n2).
+Use a static block to load the native library with System.loadLibrary("multiplicationLib").
+Create a main method to call multiply and display the result.
+Step 2: Compile the Java Code and Generate the JNI Header
+Compile the Java class with javac Multiplication.java.
+Generate the JNI header file by running javac -h . Multiplication.java.
+This creates Multiplication.h, which defines the C function signature corresponding to the multiply method.
+Step 3: Implement the Native Method in C
+Create a new C file (e.g., Multiplication.c).
+Include jni.h and Multiplication.h in the C file.
+Define the Java_Multiplication_multiply function according to the header file.
+Implement the multiplication logic by returning the product of n1 and n2.
+Step 4: Compile and Link the C Code into a Shared Library
+
+Concepts :-
+JNI: Facilitates cross-language communication, especially useful for performance optimization and system-level programming.
+
+Native Method Invocation: Java calls a native method, and the result is passed back to the Java environment.
+
+Shared Libraries: Allow dynamic linking, enabling code reuse and modular application design.

@@ -1,0 +1,145 @@
+import java.util.*;
+
+public class fifo {
+
+    // FIFO Page Replacement Algorithm
+    public static void fifoPageReplacement(int[] pages, int frameSize) {
+        int[] frames = new int[frameSize];
+        Arrays.fill(frames, -1); // Initially all frames are empty
+        int pageFaults = 0;
+        int pageHits = 0;
+        int index = 0; // To keep track of the oldest page in FIFO
+
+        for (int page : pages) {
+            boolean pageFound = false;
+
+            // Check if the page is already in the frames
+            for (int frame : frames) {
+                if (frame == page) {
+                    pageHits++;
+                    pageFound = true;
+                    break;
+                }
+            }
+
+            if (!pageFound) {
+                pageFaults++;
+                frames[index] = page; // Replace the oldest page
+                index = (index + 1) % frameSize; // Move to the next frame index
+            }
+
+            System.out.println("Frames: " + Arrays.toString(frames));
+        }
+
+        System.out.println("\nFIFO Results:");
+        System.out.println("Total Page Faults: " + pageFaults);
+        System.out.println("Total Page Hits: " + pageHits);
+    }
+
+    // LRU Page Replacement Algorithm
+    public static void lruPageReplacement(int[] pages, int frameSize) {
+        LinkedHashSet<Integer> frames = new LinkedHashSet<>(frameSize); // To maintain insertion order
+        int pageFaults = 0;
+        int pageHits = 0;
+
+        for (int page : pages) {
+            if (frames.contains(page)) {
+                // If the page is found, it's a hit, so move it to the most recently used position
+                pageHits++;
+                frames.remove(page);
+                frames.add(page);
+            } else {
+                // If the page is not found, it's a page fault
+                pageFaults++;
+                if (frames.size() == frameSize) {
+                    // If the frames are full, remove the least recently used page (first entry)
+                    frames.remove(frames.iterator().next());
+                }
+                frames.add(page); // Add the new page to the set
+            }
+
+            System.out.println("Frames: " + frames);
+        }
+
+        System.out.println("\nLRU Results:");
+        System.out.println("Total Page Faults: " + pageFaults);
+        System.out.println("Total Page Hits: " + pageHits);
+    }
+
+    public static void main(String[] args) {
+        int[] pages = {4, 3, 2, 1, 4, 3, 5, 4, 3, 2, 1, 5}; // Sample page requests
+        int frameSize = 3; // Frame size
+
+        System.out.println("FIFO Page Replacement:");
+        fifoPageReplacement(pages, frameSize);
+
+        System.out.println("\n==============================\n");
+
+        System.out.println("LRU Page Replacement:");
+        lruPageReplacement(pages, frameSize);
+    }
+}
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+Page replacement is a memory management concept in operating systems used when there isn’t enough physical memory (RAM) to hold all the pages (sections of a program) that a process requires at the same time. When a program accesses a page that is not in memory (a page fault), the operating system must load the missing page from disk into RAM. If RAM is full, a page currently in memory must be replaced to make space for the new page.
+
+Page replacement algorithms determine which page to remove based on criteria like:
+
+FIFO (First-In-First-Out): Removes the oldest loaded page.
+Optimal: Removes the page that won’t be used for the longest time in the future.
+LRU (Least Recently Used): Removes the page that hasn’t been used for the longest time.
+The goal of page replacement is to minimize page faults, which can slow down program execution.
+
+ALGORITHM :-
+
+FIFO (First-In-First-Out) Page Replacement Algorithm
+Goal: Replace the oldest page in memory when a new page needs to be loaded and the frames are full.
+
+Algorithm:
+Initialize:
+
+frames[]: an array of size frameSize to hold pages in memory. Initialize all frames to -1 (empty).
+pageFaults and pageHits: counters to track the number of page faults and page hits, respectively.
+index = 0: to track the oldest page (used for FIFO replacement).
+Process each page in the pages array:
+
+Check if the page is already in memory:
+Loop through frames. If the page is found, it is a page hit:
+Increment pageHits.
+Move to the next page.
+If the page is not found:
+Increment pageFaults.
+Replace the page at frames[index] with the new page.
+Update index = (index + 1) % frameSize to keep track of the oldest page for the next replacement.
+Print the current state of frames.
+Output Results:
+
+Print the total number of pageFaults and pageHits.
+LRU (Least Recently Used) Page Replacement Algorithm
+Goal: Replace the page that has not been used for the longest period when a new page needs to be loaded and the frames are full.
+
+Algorithm:
+Initialize:
+
+frames: a LinkedHashSet of size frameSize to store pages in memory, maintaining the order of insertion to track least recently used pages.
+pageFaults and pageHits: counters to track the number of page faults and page hits.
+Process each page in the pages array:
+
+Check if the page is already in memory (frames contains page):
+
+If page is found in frames, it is a page hit:
+Increment pageHits.
+Remove the page from frames (to move it to the most recently used position) and then add it back.
+If the page is not found:
+
+Increment pageFaults.
+If frames is full (size equals frameSize):
+Remove the first (oldest) entry from frames (least recently used page).
+Add the page to frames.
+Print the current state of frames.
+
+Output Results:
+
+Print the total number of pageFaults and pageHits.
